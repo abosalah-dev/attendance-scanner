@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#10231e">
+  <meta name="referrer" content="no-referrer">
+  <meta name="description" content="امسح كود الحضور وافتح رابط الجامعة مباشرة من موبايلك.">
+  <title>تسجيل الحضور</title>
+  <style>
+    :root{color-scheme:dark;font-family:Tahoma,Arial,sans-serif;background:#10231e;color:#f6faf7}
+    *{box-sizing:border-box}body{margin:0;min-height:100svh;padding:32px 20px max(24px,env(safe-area-inset-bottom));display:flex;justify-content:center}
+    main{width:100%;max-width:440px;margin:auto}.badge{display:inline-flex;align-items:center;gap:8px;color:#a8c6b7;font-size:13px}.dot{width:7px;height:7px;border-radius:50%;background:#b8f27d}
+    h1{font-size:34px;line-height:1.5;margin:14px 0 6px;letter-spacing:-1px}p{line-height:1.9;margin:0;color:#bdcfc6;font-size:16px}
+    .frame{position:relative;border:1px solid #375148;border-radius:24px;background:#182e26;overflow:hidden;margin:26px 0 20px;min-height:280px;display:grid;place-items:center}
+    .placeholder{text-align:center;padding:28px}.placeholder svg{width:80px;height:80px;stroke:#b8f27d;fill:none;stroke-width:2;display:block;margin:0 auto 20px}.placeholder p{font-size:14px}
+    #reader{width:100%;direction:ltr}#reader:empty{display:none}#reader video{display:block;object-fit:cover!important;border-radius:0!important;width:100%!important}
+    button{font:700 18px Tahoma,Arial,sans-serif;min-height:60px;width:100%;border:0;border-radius:16px;cursor:pointer;padding:14px 18px;background:#b8f27d;color:#14271d;touch-action:manipulation}button:disabled{opacity:.65;cursor:wait}button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:5px}
+    #stop{background:transparent;color:#cfdfd5;border:1px solid #456052;margin-top:10px;min-height:48px;font-size:15px}
+    #status{margin-top:14px;font-size:14px;text-align:center;min-height:27px}#status.error{color:#ffc3ab}
+    .note{margin-top:25px;padding:16px 18px;border-radius:16px;border:1px solid #334e40;background:#162b23;font-size:13px;line-height:2;color:#bdcfc6}.note a{color:#d2f6aa;overflow-wrap:anywhere;text-decoration-thickness:1px;text-underline-offset:3px}
+    .privacy{font-size:12px;text-align:center;margin-top:18px;color:#8eac9c}
+    #result{background:#27372b;border:1px solid #73815d;border-radius:16px;padding:18px;margin-top:16px}#result p{font-size:14px}#decoded{display:block;direction:ltr;text-align:left;overflow-wrap:anywhere;white-space:pre-wrap;font-size:12px;color:#dae5d4;margin:12px 0;max-height:180px;overflow:auto}#open{display:block;color:#b8f27d;font-size:16px;padding:12px 0;font-weight:bold}
+    [hidden]{display:none!important}@media(max-width:350px){body{padding:20px 16px}h1{font-size:29px}.frame{min-height:220px;margin-top:18px}}
+  </style>
+</head>
+<body>
+<main>
+  <div class="badge"><span class="dot" aria-hidden="true"></span>من موبايلك للجامعة مباشرة</div>
+  <h1>تسجيل الحضور</h1>
+  <p>وجّه الكاميرا على QR المعروض في القاعة.<br>رابط الجامعة هيفتح فورًا.</p>
+  <div class="frame">
+    <div class="placeholder" id="placeholder">
+      <svg viewBox="0 0 80 80" aria-hidden="true"><path d="M8 26V12a4 4 0 0 1 4-4h14M54 8h14a4 4 0 0 1 4 4v14M72 54v14a4 4 0 0 1-4 4H54M26 72H12a4 4 0 0 1-4-4V54"/><path d="M23 23h12v12H23zM45 23h12v12H45zM23 45h12v12H23zM45 45h5v5h7v7H45z"/><path d="M4 40h72" stroke="#7cac60" stroke-dasharray="3 4"/></svg>
+      <p>خلّي الكود واضح وجوّه الكاميرا</p>
+    </div>
+    <div id="reader" aria-label="كاميرا مسح كود الحضور"></div>
+  </div>
+  <button id="start" type="button" disabled>جاري تحميل الماسح...</button>
+  <button id="stop" type="button" hidden>إيقاف الكاميرا</button>
+  <p id="status" role="status" aria-live="polite"></p>
+  <section id="result" hidden aria-label="الكود المقروء">
+    <p id="resultMessage"></p><code id="decoded"></code><a id="open" hidden referrerpolicy="no-referrer">افتح الرابط</a>
+  </section>
+  <div class="note">يجب أن تكون مسجل دخولك على <a href="https://e-learning.msa.edu.eg/" target="_blank" rel="noopener noreferrer" dir="ltr">e-learning.msa.edu.eg</a> في نفس المتصفح.<br>كل طالب يستخدم موبايله وحسابه. فتح الرابط لا يضمن تسجيل الحضور؛ تأكد من رسالة الجامعة.</div>
+  <p class="privacy">المسح على جهازك. الموقع لا يطلب حسابك أو يحفظ الأكواد.</p>
+  <noscript><p>شغّل JavaScript من إعدادات المتصفح علشان الماسح يشتغل.</p></noscript>
+</main>
+<script>
+'use strict';
+const startButton=document.getElementById('start');
+const stopButton=document.getElementById('stop');
+const statusText=document.getElementById('status');
+const placeholder=document.getElementById('placeholder');
+const resultBox=document.getElementById('result');
+const resultMessage=document.getElementById('resultMessage');
+const decodedText=document.getElementById('decoded');
+const openLink=document.getElementById('open');
+let scanner=null,busy=false,handled=false;
+function status(message,error=false){statusText.textContent=message;statusText.classList.toggle('error',error);}
+function libraryReady(){startButton.disabled=false;startButton.textContent='ابدأ المسح';}
+function libraryFailed(){startButton.disabled=false;startButton.textContent='إعادة تحميل الماسح';startButton.onclick=()=>location.reload();status('الماسح ما اتحمّلش. اتأكد من الإنترنت واضغط لإعادة المحاولة.',true);}
+function validatedUrl(text){try{const url=new URL(text.trim());if(!['https:','http:'].includes(url.protocol)||url.username||url.password)return null;return url;}catch{return null;}}
+async function stopScan(){if(scanner&&scanner.isScanning){try{await scanner.stop();}catch{}}placeholder.hidden=false;stopButton.hidden=true;startButton.hidden=false;startButton.disabled=false;startButton.textContent='امسح كود تاني';busy=false;}
+function onDecoded(text){
+  if(handled)return;
+  handled=true;
+  const url=validatedUrl(text);
+  if(url&&url.hostname==='e-learning.msa.edu.eg'&&(!url.port||url.port==='443'||url.port==='80')){
+    status('تم التقاط الكود. بنفتح موقع الجامعة...');
+    // Navigate in this tab immediately, without waiting for camera shutdown.
+    window.location.assign(url.href);
+    return;
+  }
+  void stopScan();
+  resultBox.hidden=false;
+  decodedText.textContent=text;
+  openLink.hidden=!url;
+  if(url){openLink.href=url.href;resultMessage.textContent='ده مش رابط موقع الجامعة. راجع الرابط قبل ما تفتحه.';}
+  else{openLink.removeAttribute('href');resultMessage.textContent='الكود ده مش رابط ويب صالح. جرّب كود الحضور.';}
+  status('تمت قراءة الكود. مفيش رابط اتفتح تلقائيًا.');
+}
+async function startScan(){
+  if(busy)return;
+  if(!window.isSecureContext||!navigator.mediaDevices?.getUserMedia){status('افتح الصفحة في Safari أو Chrome مباشرة برابط HTTPS علشان الكاميرا تشتغل.',true);return;}
+  busy=true;handled=false;startButton.disabled=true;resultBox.hidden=true;openLink.removeAttribute('href');
+  status('اسمح باستخدام الكاميرا لما المتصفح يطلب منك.');
+  try{
+    if(!scanner)scanner=new Html5Qrcode('reader',{formatsToSupport:[Html5QrcodeSupportedFormats.QR_CODE],verbose:false});
+    placeholder.hidden=true;
+    await scanner.start({facingMode:'environment'},{fps:15,disableFlip:true},onDecoded,()=>{});
+    if(handled)return;
+    startButton.hidden=true;stopButton.hidden=false;
+    status('وجّه الكاميرا للكود. رابط الجامعة هيفتح تلقائيًا.');
+  }catch(error){
+    busy=false;startButton.disabled=false;placeholder.hidden=false;startButton.textContent='حاول تاني';
+    const reason=String(error?.name||error||'');
+    if(/NotAllowed|Permission|denied|SecurityError/i.test(reason))status('الكاميرا مقفولة. من إعدادات الموقع جنب عنوان الصفحة اسمح بالكاميرا، وبعدها اضغط حاول تاني. على iPhone: إعدادات Safari ← الكاميرا ← سماح.',true);
+    else if(/NotFound|DevicesNotFound|Overconstrained/i.test(reason))status('مش لاقيين كاميرا خلفية. افتح الصفحة من موبايل فيه كاميرا، في Safari أو Chrome.',true);
+    else if(/NotReadable|TrackStart/i.test(reason))status('الكاميرا مشغولة. اقفل أي تطبيق بيستخدمها واضغط حاول تاني.',true);
+    else status('الكاميرا ما اشتغلتش. افتح الرابط في Safari أو Chrome، اسمح بالكاميرا، وحاول تاني.',true);
+  }
+}
+startButton.addEventListener('click',startScan);
+stopButton.addEventListener('click',()=>{void stopScan();status('الكاميرا اتقفلت. اضغط للمسح من جديد.');});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js" defer onload="libraryReady()" onerror="libraryFailed()"></script>
+</body>
+</html>
